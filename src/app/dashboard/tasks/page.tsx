@@ -38,38 +38,30 @@ import { MAX_TITLE_LENGTH, MAX_DESCRIPTION_LENGTH, ITEMS_PER_PAGE } from '@/shar
 export default function TasksPage() {
   const taskUseCase = new TaskUseCase();
 
-  // Data state
   const [allTasks, setAllTasks] = useState<Task[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Search & filter state
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<TaskStatus | 'all'>('all');
   const [priorityFilter, setPriorityFilter] = useState<TaskPriority | 'all'>('all');
 
-  // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
 
-  // Sorting: 'default' (priority + updatedAt) or 'custom' (drag-and-drop order)
   const [sortMode, setSortMode] = useState<'default' | 'custom'>('default');
-  // Custom order: array of task ids in user-defined order (stored per page)
   const [customOrder, setCustomOrder] = useState<Record<string, string[]>>({});
 
-  // Modal states
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [deletingTask, setDeletingTask] = useState<Task | null>(null);
 
-  // Form state
   const [formTitle, setFormTitle] = useState('');
   const [formDescription, setFormDescription] = useState('');
   const [formStatus, setFormStatus] = useState<TaskStatus>('todo');
   const [formPriority, setFormPriority] = useState<TaskPriority>('medium');
   const [formDueDate, setFormDueDate] = useState<Date | null>(null);
 
-  // Form errors
   const [formErrors, setFormErrors] = useState<{ title?: string }>({});
 
   const loadTasks = useCallback(() => {
@@ -82,38 +74,30 @@ export default function TasksPage() {
     setIsLoading(false);
   }, [loadTasks]);
 
-  // Apply filters and search
   const filteredByStatus = taskUseCase.filterByStatus(allTasks, statusFilter);
   const filteredByPriority = taskUseCase.filterByPriority(filteredByStatus, priorityFilter);
   const searched = taskUseCase.searchTasks(filteredByPriority, searchQuery);
 
-  // BUG #6: page doesn't reset when search/filter changes
   const paginatedTasks = taskUseCase.getPaginatedTasks(searched, currentPage, ITEMS_PER_PAGE);
   const totalPages = taskUseCase.getTotalPages(searched, ITEMS_PER_PAGE);
 
-  // Sort tasks: default vs custom drag order
   const pageKey = `${currentPage}-${statusFilter}-${priorityFilter}-${searchQuery}`;
   const currentCustomOrder = customOrder[pageKey] || [];
 
   let sortedTasks = [...paginatedTasks];
 
   if (sortMode === 'custom' && currentCustomOrder.length > 0) {
-    // Apply custom drag order for the current page's tasks
     sortedTasks.sort((a, b) => {
       const idxA = currentCustomOrder.indexOf(a.id);
       const idxB = currentCustomOrder.indexOf(b.id);
-      // If both have custom positions, sort by custom order
       if (idxA !== -1 && idxB !== -1) return idxA - idxB;
-      // If only one has custom position, prefer the custom one first
       if (idxA !== -1) return -1;
       if (idxB !== -1) return 1;
-      // Fall back to default sort
       const priorityDiff = PRIORITY_ORDER[b.priority] - PRIORITY_ORDER[a.priority];
       if (priorityDiff !== 0) return priorityDiff;
       return new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime();
     });
   } else {
-    // Default sort: priority (high first) then updatedAt
     sortedTasks.sort((a, b) => {
       const priorityDiff = PRIORITY_ORDER[b.priority] - PRIORITY_ORDER[a.priority];
       if (priorityDiff !== 0) return priorityDiff;
@@ -139,7 +123,6 @@ export default function TasksPage() {
     setEditingTask(task);
     setFormTitle(task.title);
 
-    // BUG #8: description may be lost when priority is high (in use case)
     setFormDescription(task.description);
 
     setFormStatus(task.status);
@@ -155,7 +138,6 @@ export default function TasksPage() {
   };
 
   const handleCreateTask = () => {
-    // BUG #2: whitespace-only title passes validation
     if (!formTitle) {
       setFormErrors({ title: 'Title is required' });
       return;
@@ -213,7 +195,6 @@ export default function TasksPage() {
     setDeletingTask(null);
   };
 
-  // ---- Drag and drop handler ----
   const handleDragEnd = (result: DropResult) => {
     if (!result.destination) return;
 
@@ -222,7 +203,6 @@ export default function TasksPage() {
 
     if (sourceIndex === destIndex) return;
 
-    // Build the new order for the current page
     const taskIds = sortedTasks.map((t) => t.id);
     const [movedId] = taskIds.splice(sourceIndex, 1);
     taskIds.splice(destIndex, 0, movedId);
@@ -232,11 +212,9 @@ export default function TasksPage() {
       [pageKey]: taskIds,
     }));
 
-    // Switch to custom sort mode
     setSortMode('custom');
   };
 
-  // Toggle sort mode
   const toggleSortMode = () => {
     if (sortMode === 'custom') {
       setSortMode('default');
@@ -246,7 +224,6 @@ export default function TasksPage() {
     }
   };
 
-  // ---- Create / Edit modals ----
   const modalForm = (isEdit: boolean) => (
     <form
       onSubmit={(e) => {
