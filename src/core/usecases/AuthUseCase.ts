@@ -4,12 +4,6 @@ import { LocalStorageManager } from '@/infrastructure/storage/localStorage';
 
 export class AuthUseCase {
   login(email: string, password: string): { success: boolean; user?: User; error?: string } {
-    // ==========================================
-    // BUG #1: Email case-sensitivity bug
-    // Login with uppercase email like QAUSER@MAIL.COM will fail
-    // because we compare directly without toLowerCase()
-    // Expected: email should not be case-sensitive
-    // ==========================================
     if (email !== DUMMY_CREDENTIALS.email || password !== DUMMY_CREDENTIALS.password) {
       return { success: false, error: 'Invalid email or password. Please try again.' };
     }

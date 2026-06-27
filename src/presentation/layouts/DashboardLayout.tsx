@@ -33,10 +33,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   return (
     <div className="min-h-screen bg-cream-50">
-      {/* BUG #9: Logout bug - Back button still shows dashboard
-           After logout, clicking browser back button will still show the dashboard
-           because we allow rendering when isAuthenticated changes but the browser
-           caches the page state. This is intentional. */}
       <div className="flex">
         <Sidebar />
         <main className="flex-1 md:ml-0 pb-20 md:pb-0">

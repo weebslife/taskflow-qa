@@ -541,7 +541,6 @@ export default function TasksPage() {
 
                             {/* Action buttons */}
                             <div className="flex items-center gap-1 flex-shrink-0 task-card-actions">
-                              {/* BUG #10: no aria-label on edit button */}
                               <button
                                 onClick={() => handleOpenEdit(task)}
                                 className="p-2 text-gray-400 hover:text-teal-600 hover:bg-teal-50 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-teal-500"
